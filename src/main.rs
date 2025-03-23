@@ -1,3 +1,5 @@
+mod web;
+use std::env;
 use std::fs;
 use std::io::{self, Read};
 use std::path::PathBuf;
@@ -31,8 +33,11 @@ fn get_db_path() -> PathBuf {
     
     path
 }
-
-fn main() -> rusqlite::Result<()> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    if env::args().len() == 1 {
+        let db_path = get_db_path();
+        return web::open_latest_log(&db_path);
+    }
     let args = Args::parse();
     let db_path = get_db_path();
 
