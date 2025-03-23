@@ -19,11 +19,11 @@ use blake3;
     long_about = "traza is a simple utility that logs build outputs to a SQLite database. It captures stdin and associates it with a project name, timestamp, and optional tags for easy retrieval later."
 )]
 struct Args {
-    /// Name of the project to tag the log
+    /// Name of the project to tag the log.
     #[arg(long)]
     project: Option<String>,
 
-    /// If db=delete, deletes all logs from the SQLite DB
+    /// If db=delete, deletes the sql db. If db=drop, it drops all the info from the db
     #[arg(long)]
     db: Option<String>,
 
@@ -65,11 +65,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // --db delete
     if let Some(db_action) = &args.db {
-        if db_action == "delete" {
+        if db_action == "drop" {
             let conn = Connection::open(&db_path)?;
             conn.execute("DELETE FROM logs", [])?;
             println!("🧹 All logs deleted from database");
             return Ok(());
+        }
+        else if db_action == "delete" {
+            if let Ok(metadata) = fs::metadata(&db_path) {
+                if metadata.is_file() {
+                    fs::remove_file(&db_path)?;
+                    println!("🗑️ Database file deleted: {}", db_path.display());
+                } else {
+                    println!("⚠️ Database path exists but is not a file: {}", db_path.display());
+                }
+            } else {
+                println!("ℹ️ Database file does not exist: {}", db_path.display());
+            }
         }
     }
 
@@ -128,14 +140,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match log_result {
             Ok((hash, project, timestamp, log)) => {
                 let filename = format!(
-                    "{}/traza_export_{}_{}.txt",
-                    dirs::home_dir().unwrap().display(),
+                    "traza_export_{}_{}.txt",
                     project,
                     hash
                 );
                 fs::write(
                     &filename,
-                    format!("# Project: {}\n# Timestamp: {}\n\n{}", project, timestamp, log),
+                    format!("# Hash:{}\n # Project: {}\n# Timestamp: {}\n\n{}",hash ,project, timestamp, log),
                 )?;
                 println!("📤 Exported log to: {}", filename);
             }
