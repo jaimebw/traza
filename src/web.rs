@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fs::{create_dir_all, File};
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use rusqlite::{Connection, Row};
 use webbrowser;
@@ -10,7 +10,7 @@ pub fn open_log_browser(db_path: &PathBuf) -> Result<(), Box<dyn Error>> {
     let conn = Connection::open(db_path)?;
 
     let mut stmt = conn.prepare(
-        "SELECT id, project, timestamp, tags, log FROM logs ORDER BY id DESC LIMIT 100",
+        "SELECT id, project, timestamp, tags, log, hash FROM logs ORDER BY id DESC LIMIT 100",
     )?;
 
     let logs: Vec<LogEntry> = stmt
@@ -21,6 +21,7 @@ pub fn open_log_browser(db_path: &PathBuf) -> Result<(), Box<dyn Error>> {
                 timestamp: row.get(2)?,
                 tags: row.get(3)?,
                 log: row.get(4)?,
+                hash: row.get(5)?
             })
         })?
         .filter_map(Result::ok)
@@ -88,8 +89,8 @@ pub fn open_log_browser(db_path: &PathBuf) -> Result<(), Box<dyn Error>> {
             .iter()
     .map(|log| {
         format!(
-            r#"<button onclick="window.location.href='log_{}.html'">[{}] {} ({})</button>"#,
-            log.id, log.id, log.project, log.timestamp
+            r#"<button onclick="window.location.href='log_{}.html'">[{}]_{} {} ({})</button>"#,
+            log.id, log.id,log.hash ,log.project, log.timestamp
         )
     })
     .collect::<Vec<_>>()
@@ -106,5 +107,6 @@ struct LogEntry {
     timestamp: String,
     tags: String,
     log: String,
+    hash: String,
 }
 

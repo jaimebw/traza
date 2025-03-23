@@ -15,6 +15,7 @@ use blake3;
 #[derive(Parser)]
 #[command(
     version = "0.1.0",
+    author = "Jaime Bowen Varela",
     about = "traza - FPGA (or whatever you want) build logger",
     long_about = "traza is a simple utility that logs build outputs to a SQLite database. It captures stdin and associates it with a project name, timestamp, and optional tags for easy retrieval later."
 )]
