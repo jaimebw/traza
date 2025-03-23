@@ -19,7 +19,7 @@ A simple and powerful build logging utility for developers.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/traza.git
+git clone https://github.com/jaimebw/traza.git
 
 # Build the project
 cd traza
